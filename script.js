@@ -9,30 +9,60 @@ class ToDo {
         this.todoData = new Map(JSON.parse(localStorage.getItem('toDoList')));
     }
 
+    start() {
+        this.todoData.forEach(this.createToDoItem);
+    }
+
     addToStorage() {
         localStorage.setItem('toDoList', JSON.stringify([...this.todoData]));
     }
+
+    insertElem(elem) {
+        elem.style.opacity = 0;
+        if (this.todoData.get(elem.id).completed) {
+            this.todoCompleted.append(elem);
+        }
+        else {
+            this.todoList.append(elem);
+        }
+        let animateId,
+            counter = 0;
+        let animate = () => {
+            animateId = requestAnimationFrame(animate);
+            counter += 0.03;
+            if (elem.style.opacity < 1) {
+                elem.style.opacity = counter;
+            }
+            else {
+                cancelAnimationFrame(animateId);
+            }
+        }
+        animateId = requestAnimationFrame(animate);
+    }
+
     createToDoItem = (todoName) => {
         const li = document.createElement('li');
         li.classList.add('todo-item');
         li.id = todoName.key;
         li.insertAdjacentHTML("afterbegin", `<span class="text-todo">` + todoName.value + '</span> <div class="todo-buttons"> <button class="todo-edit"></button> <button class="todo-remove"></button> <button class="todo-complete"></button> </div>');
-        if (todoName.completed) {
-            this.todoCompleted.append(li);
-        }
-        else {
-            this.todoList.append(li);
-        }
+        this.insertElem(li);
+    }
+
+    editToDoItem = (elem) => {
+        const elemText = elem.querySelector('.text-todo');
+        elemText.contentEditable = "true";
+        console.log(elem);
+        elemText.focus();
+        elemText.onblur = () => {
+            elemText.contentEditable = "false";
+            this.todoData.get(elem.id).value = elemText.textContent;
+        };
     }
 
     render() {
-        this.todoCompleted.textContent = '';
-        this.todoList.textContent = '';
-        this.todoData.forEach(this.createToDoItem);
         localStorage.clear();
         this.addToStorage();
     }
-
 
     addTodo(e) {
         e.preventDefault();
@@ -46,32 +76,53 @@ class ToDo {
             key: this.generateKey(),
         };
         this.todoData.set(newTodo.key, newTodo);
+        this.createToDoItem(newTodo);
         this.input.value = "";
         this.render();
     }
 
-    deleteItem(key) {
-        this.todoData.delete(key);
-        this.render();
+    deleteItem(elem) {
+        this.todoData.delete(elem.id);
+        elem.style.opacity = 1;
+        let animateId,
+            counter = 1;
+        const animate = () => {
+            animateId = requestAnimationFrame(animate);
+            counter -= 0.03;
+            if (elem.style.opacity > 0) {
+                elem.style.opacity = counter;
+            }
+            else {
+                cancelAnimationFrame(animateId);
+                elem.remove();
+            }
+        }
+        animateId = requestAnimationFrame(animate);
     }
 
-    completedItem(key) {
-        console.log(key);
-        this.todoData.get(key).completed = !this.todoData.get(key).completed;
-        this.render();
+    completedItem(elem) {
+        const newElem = Object.assign({}, this.todoData.get(elem.id));
+        newElem.completed = !newElem.completed;
+        this.deleteItem(elem);
+        this.todoData.set(newElem.key, newElem);
+        this.createToDoItem(newElem);
     }
 
     handler() {
         document.querySelector(".todo-container").addEventListener('click', (e) => {
-            if (e.target.className !== "todo-remove" && e.target.className !== "todo-complete")
+            if (e.target.className !== "todo-remove"
+                && e.target.className !== "todo-complete"
+                && e.target.className !== "todo-edit")
                 return;
             const targetItem = e.target.closest("li");
-            console.log(targetItem);
             if (e.target.className === "todo-remove") {
-                this.deleteItem(targetItem.id);
+                this.deleteItem(targetItem);
             } else if (e.target.className === "todo-complete") {
-                this.completedItem(targetItem.id);
+                this.completedItem(targetItem);
+            } else {
+                this.editToDoItem(targetItem);
             }
+            this.render();
         });
     }
 
@@ -81,7 +132,7 @@ class ToDo {
 
     init() {
         this.form.addEventListener('submit', this.addTodo.bind(this));
-        this.render();
+        this.start();
         this.handler();
     }
 
