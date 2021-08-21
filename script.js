@@ -15,7 +15,8 @@ class ToDo {
     createToDoItem = (todoName) => {
         const li = document.createElement('li');
         li.classList.add('todo-item');
-        li.insertAdjacentHTML("afterbegin", '<span class="text-todo">' + todoName.value + '</span> <div class="todo-buttons"> <button class="todo-remove"></button> <button class="todo-complete"></button> </div>');
+        li.id = todoName.key;
+        li.insertAdjacentHTML("afterbegin", `<span class="text-todo">` + todoName.value + '</span> <div class="todo-buttons"> <button class="todo-edit"></button> <button class="todo-remove"></button> <button class="todo-complete"></button> </div>');
         if (todoName.completed) {
             this.todoCompleted.append(li);
         }
@@ -49,38 +50,27 @@ class ToDo {
         this.render();
     }
 
-    deleteItem(value) {
-        let flag = false;
-        this.todoData.forEach((item) => {
-            if (!flag && item.value === value) {
-                this.todoData.delete(item.key);
-                this.render();
-                flag = true;
-            }
-        });
+    deleteItem(key) {
+        this.todoData.delete(key);
+        this.render();
     }
 
-    completedItem(value) {
-        let flag = false;
-        this.todoData.forEach((item) => {
-            if (!flag && item.value === value) {
-                item.completed = !item.completed;
-                this.render();
-                flag = true;
-            }
-        });
+    completedItem(key) {
+        console.log(key);
+        this.todoData.get(key).completed = !this.todoData.get(key).completed;
+        this.render();
     }
 
     handler() {
         document.querySelector(".todo-container").addEventListener('click', (e) => {
             if (e.target.className !== "todo-remove" && e.target.className !== "todo-complete")
                 return;
-            const targetItem = e.target.closest('.todo-item');
-            const targetItemValue = targetItem.querySelector('.text-todo').textContent;
+            const targetItem = e.target.closest("li");
+            console.log(targetItem);
             if (e.target.className === "todo-remove") {
-                this.deleteItem(targetItemValue);
+                this.deleteItem(targetItem.id);
             } else if (e.target.className === "todo-complete") {
-                this.completedItem(targetItemValue);
+                this.completedItem(targetItem.id);
             }
         });
     }
