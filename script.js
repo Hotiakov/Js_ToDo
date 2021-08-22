@@ -54,7 +54,7 @@ class ToDo {
         elemText.focus();
         elemText.onblur = () => {
             elemText.contentEditable = "false";
-            if (elemText.textContent === "") {
+            if (elemText.textContent.trim() === "") {
                 elemText.textContent = this.todoData.get(elem.id).value;
             }
             else {
