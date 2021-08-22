@@ -51,11 +51,16 @@ class ToDo {
     editToDoItem = (elem) => {
         const elemText = elem.querySelector('.text-todo');
         elemText.contentEditable = "true";
-        console.log(elem);
         elemText.focus();
         elemText.onblur = () => {
             elemText.contentEditable = "false";
-            this.todoData.get(elem.id).value = elemText.textContent;
+            if (elemText.textContent === "") {
+                elemText.textContent = this.todoData.get(elem.id).value;
+            }
+            else {
+                this.todoData.get(elem.id).value = elemText.textContent;
+                this.render();
+            }
         };
     }
 
@@ -112,8 +117,9 @@ class ToDo {
         document.querySelector(".todo-container").addEventListener('click', (e) => {
             if (e.target.className !== "todo-remove"
                 && e.target.className !== "todo-complete"
-                && e.target.className !== "todo-edit")
+                && e.target.className !== "todo-edit") {
                 return;
+            }
             const targetItem = e.target.closest("li");
             if (e.target.className === "todo-remove") {
                 this.deleteItem(targetItem);
