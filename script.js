@@ -58,6 +58,7 @@ class ToDo {
                 elemText.textContent = this.todoData.get(elem.id).value;
             }
             else {
+                elemText.textContent = elemText.textContent.trim();
                 this.todoData.get(elem.id).value = elemText.textContent;
                 this.render();
             }
